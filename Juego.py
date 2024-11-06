@@ -1,16 +1,17 @@
 import pygame
+import random
 from Contador import Contador
-from Disparo import Disparo
 from Enemigo import Enemigo
 from Jugador import Jugador
 from Menu import Menu
+from Disparo import Disparo
 
 class Juego:
     def __init__(self, pantalla):
         """Inicializa el juego y todos los elementos necesarios."""
         self.pantalla = pantalla
         self.jugador = Jugador()
-        self.enemigos = [Enemigo() for _ in range(5)]
+        self.enemigos = [self.generar_enemigo_alejado() for _ in range(5)]
         self.balas = []  # Lista para almacenar las balas activas
         self.menu = Menu()
         self.contador = Contador()
@@ -80,7 +81,8 @@ class Juego:
         # Aumentar dificultad gradualmente si todos los enemigos fueron eliminados
         if len(self.enemigos) == 0 and self.dificultad < 3:
             self.dificultad += 1
-            self.enemigos = [Enemigo() for _ in range(5 * self.dificultad)]
+            # Generar enemigos alejados al jugador para el nuevo nivel
+            self.enemigos = [self.generar_enemigo_alejado() for _ in range(5 * self.dificultad)]
 
         # Eliminar balas que salen de la pantalla
         self.balas = [bala for bala in self.balas if 0 <= bala.posicion.x <= 800 and 0 <= bala.posicion.y <= 600]
@@ -101,6 +103,22 @@ class Juego:
 
         # Actualizamos la lista de enemigos eliminando aquellos que fueron alcanzados por balas
         self.enemigos = enemigos_restantes
+
+    def generar_enemigo_alejado(self):
+        """Genera un enemigo en una posición alejada del jugador."""
+        distancia_minima = 200
+        enemigo = Enemigo()
+
+        # Generar posición del enemigo hasta que esté a más de `distancia_minima` del jugador
+        while True:
+            enemigo.posicion.x = random.randint(0, 750)
+            enemigo.posicion.y = random.randint(0, 550)
+            distancia = ((enemigo.posicion.x - self.jugador.posicion.x) ** 2 +
+                         (enemigo.posicion.y - self.jugador.posicion.y) ** 2) ** 0.5
+            if distancia >= distancia_minima:
+                break
+
+        return enemigo
 
     def dibujar(self):
         """Dibuja todos los elementos en pantalla."""

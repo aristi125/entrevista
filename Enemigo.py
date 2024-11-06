@@ -1,5 +1,7 @@
 import pygame
 import random
+import math
+from Disparo import Disparo
 
 class Enemigo:
     def __init__(self):
@@ -22,9 +24,13 @@ class Enemigo:
         """Verifica si el enemigo ha colisionado con el jugador."""
         return self.posicion.colliderect(jugador.posicion)
 
-    def es_eliminado(self, jugador):
-        """Determina si el enemigo ha sido eliminado por el jugador."""
-        return self.colisiona(jugador)  # Simplificado para la muestra
+    def disparar_bala(self, jugador):
+        """Genera una bala que se dirige hacia el jugador."""
+        dx = jugador.posicion.centerx - self.posicion.centerx
+        dy = jugador.posicion.centery - self.posicion.centery
+        distancia = math.sqrt(dx ** 2 + dy ** 2)
+        direccion = (dx / distancia, dy / distancia)  # Dirección normalizada
+        return Disparo(self.posicion.centerx, self.posicion.centery, direccion)
 
     def dibujar(self, pantalla):
         """Dibuja el enemigo en pantalla."""
