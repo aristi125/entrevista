@@ -12,7 +12,8 @@ class Juego:
         self.pantalla = pantalla
         self.jugador = Jugador()
         self.enemigos = [self.generar_enemigo_alejado() for _ in range(5)]
-        self.balas = []  # Lista para almacenar las balas activas
+        self.balas = []  # Lista para almacenar las balas activas del jugador
+        self.balas_enemigas = []  # Lista para almacenar las balas activas de los enemigos
         self.menu = Menu()
         self.contador = Contador()
 
@@ -58,16 +59,26 @@ class Juego:
         """Actualiza el estado del juego, incluyendo balas y enemigos."""
         self.jugador.actualizar()
 
-        # Actualizar posición de cada bala
+        # Actualizar posición de cada bala del jugador
         for bala in self.balas:
             bala.mover()
 
-        # Verificar colisiones de balas con enemigos
-        self.verificar_colisiones()
+        # Actualizar posición de cada bala enemiga
+        for bala_enemiga in self.balas_enemigas:
+            bala_enemiga.mover()
 
-        # Actualizar enemigos y verificar si colisionan con el jugador
+        # Verificar colisiones de balas con enemigos y entre balas
+        self.verificar_colisiones()
+        self.verificar_colisiones_entre_balas()
+
+        # Actualizar enemigos, hacer que disparen, y verificar si colisionan con el jugador
         for enemigo in self.enemigos:
             enemigo.actualizar(self.jugador)
+            # En niveles avanzados, los enemigos disparan
+            if self.dificultad >= 2 and random.randint(1, 100) < 3:  # Probabilidad de disparar cada frame
+                nueva_bala_enemiga = enemigo.disparar_bala(self.jugador)
+                self.balas_enemigas.append(nueva_bala_enemiga)
+
             if enemigo.colisiona(self.jugador):
                 # Fin del juego si el jugador es atacado
                 self.en_juego = False
@@ -78,17 +89,21 @@ class Juego:
                     pygame.quit()
                     quit()
 
+        # Verificar colisiones de balas enemigas con el jugador
+        self.verificar_colisiones_balas_enemigas()
+
         # Aumentar dificultad gradualmente si todos los enemigos fueron eliminados
         if len(self.enemigos) == 0 and self.dificultad < 3:
             self.dificultad += 1
             # Generar enemigos alejados al jugador para el nuevo nivel
             self.enemigos = [self.generar_enemigo_alejado() for _ in range(5 * self.dificultad)]
 
-        # Eliminar balas que salen de la pantalla
+        # Eliminar balas del jugador y enemigas que salen de la pantalla
         self.balas = [bala for bala in self.balas if 0 <= bala.posicion.x <= 800 and 0 <= bala.posicion.y <= 600]
+        self.balas_enemigas = [bala for bala in self.balas_enemigas if 0 <= bala.posicion.x <= 800 and 0 <= bala.posicion.y <= 600]
 
     def verificar_colisiones(self):
-        """Verifica colisiones entre las balas y los enemigos."""
+        """Verifica colisiones entre las balas del jugador y los enemigos."""
         enemigos_restantes = []
         for enemigo in self.enemigos:
             colision = False
@@ -103,6 +118,37 @@ class Juego:
 
         # Actualizamos la lista de enemigos eliminando aquellos que fueron alcanzados por balas
         self.enemigos = enemigos_restantes
+
+    def verificar_colisiones_balas_enemigas(self):
+        """Verifica si alguna bala enemiga colisiona con el jugador."""
+        for bala_enemiga in self.balas_enemigas:
+            if bala_enemiga.posicion.colliderect(self.jugador.posicion):
+                # Si el jugador es alcanzado por una bala enemiga, fin del juego
+                self.en_juego = False
+                self.menu.mostrar_menu_fin(self.pantalla)
+                if self.menu.estado_menu == "salir":
+                    pygame.quit()
+                    quit()
+
+    def verificar_colisiones_entre_balas(self):
+        """Verifica colisiones entre las balas del jugador y las balas enemigas."""
+        balas_jugador_restantes = []
+        balas_enemigas_restantes = []
+
+        for bala in self.balas:
+            colision = False
+            for bala_enemiga in self.balas_enemigas:
+                if bala.posicion.colliderect(bala_enemiga.posicion):
+                    colision = True
+                    self.balas_enemigas.remove(bala_enemiga)  # Eliminar bala enemiga que colisiona
+                    break
+            if not colision:
+                balas_jugador_restantes.append(bala)
+
+        # Actualizar las listas de balas después de verificar colisiones
+        self.balas = balas_jugador_restantes
+        # Mantener las balas enemigas restantes sin colisiones
+        self.balas_enemigas = [bala for bala in self.balas_enemigas if bala not in balas_enemigas_restantes]
 
     def generar_enemigo_alejado(self):
         """Genera un enemigo en una posición alejada del jugador."""
@@ -129,9 +175,13 @@ class Juego:
         for enemigo in self.enemigos:
             enemigo.dibujar(self.pantalla)
 
-        # Dibujar balas
+        # Dibujar balas del jugador
         for bala in self.balas:
             bala.dibujar(self.pantalla)
+
+        # Dibujar balas de los enemigos
+        for bala_enemiga in self.balas_enemigas:
+            bala_enemiga.dibujar(self.pantalla)
 
         # Mostrar el contador de enemigos eliminados
         self.contador.mostrar(self.pantalla)

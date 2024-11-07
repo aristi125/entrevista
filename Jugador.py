@@ -18,7 +18,7 @@ class Jugador:
         self.color = (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
 
     def actualizar(self):
-        """Actualiza la posición del jugador."""
+        """Actualiza la posición del jugador y aplica teletransportación al salir de los límites."""
         keys = pygame.key.get_pressed()
         if keys[pygame.K_LEFT]:
             self.posicion.x -= self.velocidad
@@ -28,6 +28,16 @@ class Jugador:
             self.posicion.y -= self.velocidad
         if keys[pygame.K_DOWN]:
             self.posicion.y += self.velocidad
+
+        # Teletransportación al salir de los límites
+        if self.posicion.right < 0:
+            self.posicion.x = 800
+        elif self.posicion.left > 800:
+            self.posicion.x = -self.posicion.width
+        if self.posicion.bottom < 0:
+            self.posicion.y = 600
+        elif self.posicion.top > 600:
+            self.posicion.y = -self.posicion.height
 
     def dibujar(self, pantalla):
         """Dibuja el jugador en pantalla."""

@@ -25,12 +25,12 @@ class Enemigo:
         return self.posicion.colliderect(jugador.posicion)
 
     def disparar_bala(self, jugador):
-        """Genera una bala que se dirige hacia el jugador."""
+        """Genera una bala que se dirige hacia el jugador con color rojo."""
         dx = jugador.posicion.centerx - self.posicion.centerx
         dy = jugador.posicion.centery - self.posicion.centery
         distancia = math.sqrt(dx ** 2 + dy ** 2)
         direccion = (dx / distancia, dy / distancia)  # Dirección normalizada
-        return Disparo(self.posicion.centerx, self.posicion.centery, direccion)
+        return Disparo(self.posicion.centerx, self.posicion.centery, direccion, color=(255, 255, 255))  # Bala roja
 
     def dibujar(self, pantalla):
         """Dibuja el enemigo en pantalla."""
