@@ -1,6 +1,18 @@
-# Juego de Aventura en Pygame
+# Juego de Evitar Enemigos
 
-Este es un juego desarrollado en Python utilizando la biblioteca Pygame. El jugador debe evitar a los enemigos y puede cambiar de color y de nivel de dificultad.
+Este proyecto es un juego simple desarrollado en Python utilizando la biblioteca Pygame. El objetivo del juego es controlar un jugador que debe evitar enemigos y dispararles, mientras se puede cambiar el color del jugador y seleccionar la dificultad del juego.
+
+## Requisitos
+
+Para ejecutar este proyecto, necesitarás tener instalado Python 3.12.3 y la biblioteca Pygame. Puedes instalar Pygame utilizando `pip`. Asegúrate de tener `pip` instalado en tu sistema.
+
+### Instalación de Pygame
+
+1. Abre una terminal o línea de comandos.
+2. Ejecuta el siguiente comando:
+
+   ```bash
+   pip install pygame
 
 ## Funcionalidades:
 - Menú de inicio, pausa y opciones

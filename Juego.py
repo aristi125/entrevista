@@ -1,33 +1,30 @@
 import pygame
 import random
-from Contador import Contador
-from Enemigo import Enemigo
 from Jugador import Jugador
-from Menu import Menu
+from Enemigo import Enemigo
 from Disparo import Disparo
-
+from Menu import Menu
+from Contador import Contador
 class Juego:
     def __init__(self, pantalla, dificultad):
         """Inicializa el juego con la dificultad especificada."""
         self.pantalla = pantalla
-        self.dificultad = dificultad  # Asigna la dificultad seleccionada
+        self.dificultad = dificultad
+        self.nivel = 1  # Nivel inicial
+        self.max_nivel = 3  # Limitar a un máximo de 3 niveles
         self.en_juego = True
         self.jugador = Jugador()
-        self.enemigos = self.generar_enemigos_por_dificultad()
+        self.enemigos = self.generar_enemigos_por_dificultad(self.nivel)
         self.balas = []  # Lista para almacenar las balas activas del jugador
         self.balas_enemigas = []  # Lista para almacenar las balas activas de los enemigos
         self.menu = Menu()
-        self.contador = Contador()
+        self.contador = Contador()  # Contador inicializado
         self.reloj = pygame.time.Clock()
 
-    def generar_enemigos_por_dificultad(self):
-        """Genera enemigos según el nivel de dificultad."""
-        if self.dificultad == 1:
-            return [self.generar_enemigo_alejado() for _ in range(5)]
-        elif self.dificultad == 2:
-            return [self.generar_enemigo_alejado() for _ in range(10)]
-        elif self.dificultad == 3:
-            return [self.generar_enemigo_alejado() for _ in range(15)]
+    def generar_enemigos_por_dificultad(self, nivel):
+        """Genera enemigos según el nivel de dificultad y el nivel actual."""
+        cantidad_enemigos = 5 * nivel  # 5 enemigos en el nivel 1, 10 en el nivel 2, etc.
+        return [self.generar_enemigo_alejado() for _ in range(cantidad_enemigos)]
 
     def iniciar(self):
         """Inicia el bucle principal del juego."""
@@ -52,7 +49,6 @@ class Juego:
                 elif evento.key == pygame.K_SPACE:
                     # Disparar una bala
                     self.disparar_bala()
-
                 # Manejo de eventos del jugador
                 self.jugador.manejar_eventos(evento)
 
@@ -79,17 +75,46 @@ class Juego:
         self.verificar_colisiones_entre_balas()
         self.verificar_colisiones_balas_enemigas()
 
-        # Actualizar enemigos y hacer que disparen
+        # Actualizar enemigos y hacer que disparen según la dificultad y el nivel
         for enemigo in self.enemigos:
             enemigo.actualizar(self.jugador)
-            if self.dificultad >= 2 and random.randint(1, 100) < 3:  # Probabilidad de disparo en niveles avanzados
-                nueva_bala_enemiga = enemigo.disparar_bala(self.jugador)
-                self.balas_enemigas.append(nueva_bala_enemiga)
+
+            # Condiciones de disparo en función de la dificultad
+            if self.dificultad == 1:
+                # En el nivel fácil, los enemigos no disparan
+                continue
+            elif self.dificultad == 2:
+                # En el nivel medio, algunos enemigos disparan con una probabilidad del 10%
+                if random.randint(1, 100) <= 10:
+                    nueva_bala_enemiga = enemigo.disparar_bala(self.jugador)
+                    self.balas_enemigas.append(nueva_bala_enemiga)
+            elif self.dificultad == 3:
+                # En el nivel difícil, todos los enemigos disparan con una probabilidad del 30%
+                if random.randint(1, 100) <= 30:
+                    nueva_bala_enemiga = enemigo.disparar_bala(self.jugador)
+                    self.balas_enemigas.append(nueva_bala_enemiga)
 
             if enemigo.colisiona(self.jugador):
                 # Fin del juego si el jugador es atacado
                 self.en_juego = False
                 self.menu.mostrar_menu_fin(self.pantalla)
+
+        # Si todos los enemigos fueron eliminados, aumentar el nivel
+        if not self.enemigos:
+            self.aumentar_nivel()
+
+    def aumentar_nivel(self):
+        """Aumenta el nivel del juego y genera nuevos enemigos."""
+        if self.nivel < self.max_nivel:
+            self.nivel += 1
+            self.enemigos = self.generar_enemigos_por_dificultad(self.nivel)
+            self.balas.clear()
+            self.balas_enemigas.clear()
+            self.contador.actualizar_nivel(self.nivel)  # Actualiza el nivel en el contador
+        else:
+            # Si se alcanza el nivel máximo, mostrar mensaje de victoria
+            self.en_juego = False
+            self.menu.mostrar_menu_victoria(self.pantalla)  # Añadir función en Menu para mostrar mensaje de victoria
 
     def verificar_colisiones(self):
         """Verifica colisiones entre las balas del jugador y los enemigos."""
@@ -99,13 +124,11 @@ class Juego:
             for bala in self.balas:
                 if bala.posicion.colliderect(enemigo.posicion):
                     colision = True
-                    self.contador.incrementar()
+                    self.contador.incrementar()  # Incrementa el contador de enemigos eliminados
                     self.balas.remove(bala)
                     break
             if not colision:
                 enemigos_restantes.append(enemigo)
-
-        # Actualizamos la lista de enemigos eliminando aquellos que fueron alcanzados por balas
         self.enemigos = enemigos_restantes
 
     def verificar_colisiones_balas_enemigas(self):
@@ -119,8 +142,6 @@ class Juego:
     def verificar_colisiones_entre_balas(self):
         """Verifica colisiones entre las balas del jugador y las balas enemigas."""
         balas_jugador_restantes = []
-        balas_enemigas_restantes = []
-
         for bala in self.balas:
             colision = False
             for bala_enemiga in self.balas_enemigas:
@@ -130,15 +151,12 @@ class Juego:
                     break
             if not colision:
                 balas_jugador_restantes.append(bala)
-
         self.balas = balas_jugador_restantes
 
     def generar_enemigo_alejado(self):
         """Genera un enemigo en una posición alejada del jugador."""
         distancia_minima = 200
         enemigo = Enemigo()
-
-        # Generar posición hasta que esté lejos del jugador
         while True:
             enemigo.posicion.x = random.randint(0, 750)
             enemigo.posicion.y = random.randint(0, 550)
@@ -146,7 +164,6 @@ class Juego:
                          (enemigo.posicion.y - self.jugador.posicion.y) ** 2) ** 0.5
             if distancia >= distancia_minima:
                 break
-
         return enemigo
 
     def dibujar(self):
@@ -166,7 +183,7 @@ class Juego:
         for bala_enemiga in self.balas_enemigas:
             bala_enemiga.dibujar(self.pantalla)
 
-        # Mostrar el contador de enemigos eliminados
+        # Mostrar el contador de enemigos eliminados y el nivel actual
         self.contador.mostrar(self.pantalla)
         pygame.display.flip()
 

@@ -3,12 +3,13 @@ import pygame
 class Menu:
     def __init__(self):
         """Inicializa el menú con las opciones disponibles."""
-        self.estado_menu = "inicio"  # Puede ser "inicio", "pausa", "dificultad", "color", "fin"
+        self.estado_menu = "inicio"  # Puede ser "inicio", "pausa", "dificultad", "fin", "victoria"
         self.opciones = {
             "inicio": ["Iniciar Juego", "Seleccionar Dificultad", "Salir"],
             "pausa": ["Continuar", "Reiniciar", "Salir"],
             "dificultad": ["Fácil", "Medio", "Difícil"],
-            "fin": ["Reiniciar Juego", "Salir"]
+            "fin": ["Reiniciar Juego", "Salir"],
+            "victoria": ["Reiniciar Juego", "Salir"]  # Opciones para el menú de victoria
         }
         self.seleccion_actual = 0
         self.dificultad_seleccionada = 1  # Dificultad por defecto (1 = fácil)
@@ -22,7 +23,8 @@ class Menu:
         fuente = pygame.font.Font(None, 50)
 
         # Título del menú
-        titulo = fuente.render(f"Menú de {self.estado_menu.capitalize()}", True, (255, 255, 255))
+        titulo_texto = "Menú de " + self.estado_menu.capitalize() if self.estado_menu != "victoria" else "¡Victoria!"
+        titulo = fuente.render(titulo_texto, True, (255, 255, 255))
         pantalla.blit(titulo, (200, 50))
 
         # Opciones del menú actual
@@ -81,6 +83,13 @@ class Menu:
                 pygame.quit()
                 quit()
 
+        elif self.estado_menu == "victoria":
+            if self.seleccion_actual == 0:  # Reiniciar Juego
+                self.estado_menu = "inicio"  # Volver al menú inicial para reiniciar
+            elif self.seleccion_actual == 1:  # Salir
+                pygame.quit()
+                quit()
+
     def esperar_inicio(self, pantalla):
         """Controla el menú de inicio, esperando que el jugador seleccione una opción."""
         en_menu = True
@@ -89,14 +98,11 @@ class Menu:
                 if evento.type == pygame.QUIT:
                     pygame.quit()
                     quit()
-
                 # Navegación del menú
                 self.manejar_eventos(evento)
-
             # Dibujar el menú en pantalla
             self.mostrar(pantalla)
             pygame.display.flip()
-
             # Salir del bucle si el jugador elige "Iniciar Juego"
             if self.estado_menu == "jugando":
                 en_menu = False
@@ -111,14 +117,11 @@ class Menu:
                 if evento.type == pygame.QUIT:
                     pygame.quit()
                     quit()
-
                 # Manejo de eventos en el menú de pausa
                 self.manejar_eventos(evento)
-
             # Dibujar el menú de pausa en pantalla
             self.mostrar(pantalla)
             pygame.display.flip()
-
             # Si el jugador elige "Continuar", salir del menú de pausa
             if self.estado_menu == "jugando":
                 en_menu_pausa = False
@@ -133,17 +136,33 @@ class Menu:
                 if evento.type == pygame.QUIT:
                     pygame.quit()
                     quit()
-
                 # Manejo de eventos en el menú de fin de juego
                 self.manejar_eventos(evento)
-
             # Dibujar el menú de fin en pantalla
             self.mostrar(pantalla)
             pygame.display.flip()
-
             # Si el jugador elige "Reiniciar Juego" o "Salir", salir del menú de fin
             if self.estado_menu == "inicio":
                 en_menu_fin = False
+
+    def mostrar_menu_victoria(self, pantalla):
+        """Muestra un menú de victoria cuando el jugador alcanza el nivel máximo."""
+        self.estado_menu = "victoria"
+        self.seleccion_actual = 0
+        en_menu_victoria = True
+        while en_menu_victoria:
+            for evento in pygame.event.get():
+                if evento.type == pygame.QUIT:
+                    pygame.quit()
+                    quit()
+                # Manejo de eventos en el menú de victoria
+                self.manejar_eventos(evento)
+            # Dibujar el menú de victoria en pantalla
+            self.mostrar(pantalla)
+            pygame.display.flip()
+            # Salir del menú de victoria si elige "Reiniciar Juego" o "Salir"
+            if self.estado_menu == "inicio":
+                en_menu_victoria = False
 
     def obtener_dificultad(self):
         """Devuelve la dificultad seleccionada para ser usada en el juego."""
