@@ -1,6 +1,6 @@
 # Juego de Evitar Enemigos
 
-Este proyecto es un juego simple desarrollado en Python utilizando la biblioteca Pygame. El objetivo del juego es controlar un jugador que debe evitar enemigos y dispararles, mientras se puede cambiar el color del jugador y seleccionar la dificultad del juego.
+Este proyecto es un juego simple desarrollado en Python utilizando la biblioteca Pygame. El objetivo del juego es controlar un jugador que debe evitar enemigos y dispararles, mientras se puede cambiar el color del jugador y seleccionar la dificultad del juego, en la dificultad facil los enemigos no disparan, en la dificultad medio algunos disparan y en la dificil, casi "imposible" todos disparan.
 
 ## Requisitos
 
