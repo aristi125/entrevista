@@ -28,4 +28,4 @@ Para ejecutar este proyecto, necesitarás tener instalado Python 3.12.3 y la bib
 ## Instrucciones:
 1. Ejecuta el archivo `juego.py` para comenzar.
 2. Usa los menús para personalizar el juego y ajustar el nivel de dificultad.
-3. ¡Diviértete!
+3. ¡Diviértete y disfruta!
